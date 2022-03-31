@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Username:
+    Type: String
+    Default: CFN-Test-User
+  
+  Password:
+    Type: String
+    NoEcho: True
+    Default: P@55w0rd987
+    # NoEcho option will hide it when you describe the stack later
+  
+  GroupName:
+    Type: String
+    Default: CFN-Test-Group
+
+  RoleName:
+    Type: String
+    Default: CFN-Test-Role
+
+  PolicyName:
+    Type: String
+    Default: CFN-Test-Policy
+
+
+Resources:
+  IamUser:
+    Type: AWS::IAM::User
+    Properties: 
+      UserName: !Ref Username
+      Groups: 
+        - !Ref IamGroup
+      LoginProfile:
+        Password: !Ref Password
+        PasswordResetRequired: False
+      Policies:
+        # This is an inline policy for the user to grant permission to assume the role
+        - PolicyName: !Join [ -, [ !Ref Username, IamInlinePolicy ] ]
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'sts:AssumeRole'
+                Resource: !GetAtt IamRole.Arn
+      
+  IamGroup:
+    Type: AWS::IAM::Group
+    Properties: 
+      GroupName: !Ref GroupName
+
+
+  IamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref RoleName
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                - !Ref "AWS::AccountId"
+            Action:
+              - 'sts:AssumeRole'
+
+  IamPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: !Ref PolicyName
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'codecommit:List*'
+              - 'codecommit:Get*'
+              - 's3:List*'
+              - 's3:Get*'
+              - 's3:Describe*'
+              - 'states:List*' # 'states' = Step functions
+              - 'states:Get*'
+              - 'states:Describe*'
+              - 'lambda:Get*'
+              - 'lambda:List*'
+              - 'cloudwatch:List*'
+              - 'cloudwatch:Get*'
+              - 'cloudwatch:Describe*'
+              - 'events:List*'
+              - 'events:Describe*'
+              - 'servicecatalog:List*'
+              - 'servicecatalog:Get*'
+              - 'servicecatalog:Describe*'
+              - 'cloudformation:List*'
+              - 'cloudformation:Describe*'
+              - 'iam:Get*'
+              - 'iam:List*'
+            Resource: '*'
+      Roles:
+        - !Ref IamRole
