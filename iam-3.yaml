@@ -8,7 +8,7 @@ Parameters:
   Password:
     Type: String
     NoEcho: True
-    Default: P@55w0rd987
+    Default: 0000000
     # NoEcho option will hide it when you describe the stack later
   
   GroupName:
